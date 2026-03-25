@@ -14,7 +14,9 @@ requirements = python3,kivy==2.3.1,kivymd,reportlab,pillow
 orientation = portrait
 fullscreen = 0
 
+# أذونات مهمة للـ PDF
 android.permissions = INTERNET,WRITE_EXTERNAL_STORAGE,READ_EXTERNAL_STORAGE
 
-# للـ PDF
-android.permissions += WRITE_EXTERNAL_STORAGE,READ_EXTERNAL_STORAGE
+# إعدادات إضافية لتجنب الأخطاء
+android.api = 33
+android.minapi = 21
