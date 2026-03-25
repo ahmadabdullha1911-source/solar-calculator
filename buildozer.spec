@@ -1,6 +1,6 @@
 [app]
 
-title = Solar Calculator
+title = Solar Power Calculator
 package.name = solarcalculator
 package.domain = org.engineerahmed
 
