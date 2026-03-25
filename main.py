@@ -1,17 +1,7 @@
-import os
-os.environ["KIVY_GL_BACKEND"] = "angle_sdl2"
-
-from kivymd.app import MDApp
-from kivymd.uix.screen import MDScreen
-from kivymd.uix.button import MDRaisedButton
-from kivymd.uix.textfield import MDTextField
-from kivymd.uix.label import MDLabel
-from kivymd.uix.boxlayout import MDBoxLayout
-from kivymd.uix.gridlayout import MDGridLayout
-from kivymd.uix.spinner import MDSpinner
-from kivy.uix.scrollview import ScrollView
-from kivymd.uix.dialog import MDDialog
+import customtkinter as ctk
+from tkinter import messagebox
 import math
+import os
 from reportlab.lib.pagesizes import A4
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image as RLImage
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
@@ -19,151 +9,175 @@ from reportlab.lib import colors
 from reportlab.lib.units import mm
 from PIL import Image, ImageDraw, ImageFont
 
-class SolarCalculatorScreen(MDScreen):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.calculation_data = ""
+ctk.set_appearance_mode("dark")
 
-        layout = MDBoxLayout(orientation='vertical', padding=20, spacing=15)
+class SolarApp:
+    def __init__(self):
+        self.root = ctk.CTk()
+        self.root.title("🌞 Solar Power Calculator - Engineer Ahmed")
+        self.root.geometry("960x800")
+        self.root.resizable(True, True)
 
-        header = MDBoxLayout(orientation='vertical', size_hint_y=None, height=180, md_bg_color=[0.1, 0.1, 0.1, 1])
-        title = MDLabel(text="⚡ SOLAR POWER CALCULATOR", halign="center", font_style="H4", text_color=[1, 0.2, 0.2, 1])
-        engineer = MDLabel(text="Engineer Ahmed", halign="center", font_style="H5", text_color=[1, 1, 1, 1])
-        subtitle = MDLabel(text="Off-Grid & Hybrid Solar System Designer", halign="center", font_style="Subtitle1", theme_text_color="Secondary")
-        header.add_widget(title)
-        header.add_widget(engineer)
-        header.add_widget(subtitle)
-        layout.add_widget(header)
+        # Header
+        header = ctk.CTkFrame(self.root, fg_color="#1a1a1a", height=150)
+        header.pack(fill="x", pady=10)
 
-        scroll = ScrollView()
-        inputs = MDGridLayout(cols=1, spacing=15, padding=10, adaptive_height=True)
+        ctk.CTkLabel(header, text="⚡ SOLAR POWER CALCULATOR", 
+                     font=ctk.CTkFont(size=38, weight="bold"), text_color="#ff3333").pack(pady=10)
+        ctk.CTkLabel(header, text="Engineer Ahmed", 
+                     font=ctk.CTkFont(size=24, weight="bold"), text_color="white").pack()
+        ctk.CTkLabel(header, text="Off-Grid & Hybrid Solar System Designer", 
+                     font=ctk.CTkFont(size=15), text_color="#aaaaaa").pack(pady=5)
 
-        self.daily = MDTextField(hint_text="Daily Consumption (Wh/day)", helper_text="مثال: 6500")
-        self.psh = MDTextField(hint_text="Peak Sun Hours (PSH)", helper_text="مثال: 5.3")
-        self.peak = MDTextField(hint_text="Peak Load (Watts)", helper_text="مثال: 4200")
-        self.panel = MDTextField(hint_text="Panel Wattage (Wp)", helper_text="550")
-        self.isc = MDTextField(hint_text="Panel Isc (A)", helper_text="13.5")
+        main = ctk.CTkFrame(self.root, fg_color="#121212")
+        main.pack(fill="both", expand=True, padx=25, pady=15)
 
-        self.sys_type = MDSpinner(text="Hybrid", values=["Hybrid", "Off-Grid"], size_hint_y=None, height=50)
+        # Inputs
+        left = ctk.CTkFrame(main, fg_color="transparent")
+        left.pack(side="left", fill="both", expand=True, padx=20)
 
-        inputs.add_widget(self.daily)
-        inputs.add_widget(self.psh)
-        inputs.add_widget(self.peak)
-        inputs.add_widget(self.panel)
-        inputs.add_widget(self.isc)
-        inputs.add_widget(MDLabel(text="System Type:"))
-        inputs.add_widget(self.sys_type)
+        ctk.CTkLabel(left, text="Daily Consumption (Wh/day):", text_color="#ffdddd").pack(anchor="w")
+        self.daily = ctk.CTkEntry(left, placeholder_text="6500", height=40)
+        self.daily.pack(fill="x", pady=8)
 
-        scroll.add_widget(inputs)
-        layout.add_widget(scroll)
+        ctk.CTkLabel(left, text="Peak Sun Hours (PSH):", text_color="#ffdddd").pack(anchor="w")
+        self.psh = ctk.CTkEntry(left, placeholder_text="5.3", height=40)
+        self.psh.pack(fill="x", pady=8)
 
-        btn_layout = MDBoxLayout(orientation='horizontal', spacing=20, size_hint_y=None, height=60)
-        calc_btn = MDRaisedButton(text="🚀 Calculate", md_bg_color=[1, 0.2, 0.2, 1], on_release=self.calculate)
-        save_btn = MDRaisedButton(text="💾 Save as PDF", md_bg_color=[0, 0.7, 0, 1], on_release=self.save_pdf)
-        btn_layout.add_widget(calc_btn)
-        btn_layout.add_widget(save_btn)
-        layout.add_widget(btn_layout)
+        ctk.CTkLabel(left, text="Peak Load (Watts):", text_color="#ffdddd").pack(anchor="w")
+        self.peak = ctk.CTkEntry(left, placeholder_text="4200", height=40)
+        self.peak.pack(fill="x", pady=8)
 
-        self.result_label = MDLabel(text="Result will appear here...", halign="left", text_color=[0.9, 0.9, 0.9, 1], height=320)
-        layout.add_widget(self.result_label)
+        right = ctk.CTkFrame(main, fg_color="transparent")
+        right.pack(side="right", fill="both", expand=True, padx=20)
 
-        self.add_widget(layout)
+        ctk.CTkLabel(right, text="System Type:", text_color="#ffdddd").pack(anchor="w")
+        self.type_combo = ctk.CTkComboBox(right, values=["Hybrid", "Off-Grid"], height=40)
+        self.type_combo.pack(fill="x", pady=8)
 
-    def calculate(self, instance):
+        ctk.CTkLabel(right, text="Panel Wattage (Wp):", text_color="#ffdddd").pack(anchor="w")
+        self.panel = ctk.CTkEntry(right, placeholder_text="550", height=40)
+        self.panel.pack(fill="x", pady=8)
+
+        ctk.CTkLabel(right, text="Panel Isc (A):", text_color="#ffdddd").pack(anchor="w")
+        self.isc = ctk.CTkEntry(right, placeholder_text="13.5", height=40)
+        self.isc.pack(fill="x", pady=8)
+
+        # Buttons
+        btn_frame = ctk.CTkFrame(main, fg_color="transparent")
+        btn_frame.pack(pady=25)
+
+        calc_btn = ctk.CTkButton(btn_frame, text="🚀 Calculate", width=220, height=50,
+                                 font=ctk.CTkFont(size=18, weight="bold"),
+                                 fg_color="#ff3333", hover_color="#cc0000",
+                                 command=self.calculate)
+        calc_btn.pack(side="left", padx=15)
+
+        self.save_btn = ctk.CTkButton(btn_frame, text="💾 Save as PDF", width=220, height=50,
+                                      font=ctk.CTkFont(size=18, weight="bold"),
+                                      fg_color="#00aa00", hover_color="#008800",
+                                      state="disabled", command=self.save_pdf)
+        self.save_btn.pack(side="left", padx=15)
+
+        # Result
+        self.result = ctk.CTkTextbox(main, height=320, font=ctk.CTkFont(size=15))
+        self.result.pack(fill="both", expand=True, padx=20, pady=10)
+
+        self.calc_data = ""
+
+    def calculate(self):
         try:
-            daily = float(self.daily.text or 0)
-            psh = float(self.psh.text or 0)
-            peak = float(self.peak.text or 0)
-            panel_wp = float(self.panel.text or 550)
-            isc_a = float(self.isc.text or 13)
-            sys_type = self.sys_type.text
+            daily = float(self.daily.get())
+            psh = float(self.psh.get())
+            peak = float(self.peak.get())
+            panel = float(self.panel.get())
+            isc = float(self.isc.get())
+            sys_type = self.type_combo.get()
 
-            pv = (daily * 1.25) / (psh * 0.78)
-            num_panels = math.ceil(pv / panel_wp)
+            pv_power = (daily * 1.25) / (psh * 0.78)
+            num_panels = math.ceil(pv_power / panel)
             inverter = peak * 1.3
 
             if sys_type == "Off-Grid":
-                bat = (daily * 3) / (48 * 0.85 * 0.92 * 0.9)
-                bat_str = f"Battery: {bat:.0f} Ah (3 days autonomy)"
+                battery = (daily * 3) / (48 * 0.85 * 0.92 * 0.9)
+                bat_text = f"Battery: {battery:.0f} Ah (3 days autonomy)"
             else:
-                bat = (daily * 0.25) / (48 * 0.85 * 0.92 * 0.9)
-                bat_str = f"Battery: {bat:.0f} Ah (Hybrid backup)"
+                battery = (daily * 0.25) / (48 * 0.85 * 0.92 * 0.9)
+                bat_text = f"Battery: {battery:.0f} Ah (Hybrid backup)"
 
-            controller = isc_a * num_panels * 1.3
+            controller = isc * num_panels * 1.3
 
-            self.calculation_data = f"""System Type: {sys_type}
-Daily Consumption: {daily/1000:.2f} kWh
-PV Array: {pv:.0f} Wp → {num_panels} panels
-Inverter: {inverter:.0f} W
-{bat_str}
-Charge Controller: {controller:.1f} A
-Safety Factor: 25%"""
+            self.calc_data = f"""System Type          : {sys_type}
+Daily Consumption    : {daily/1000:.2f} kWh
+PV Array             : {pv_power:.0f} Wp → {num_panels} panels
+Inverter             : {inverter:.0f} W
+{bat_text}
+Charge Controller    : {controller:.1f} A
+Safety Factor        : 25%"""
 
-            self.result_label.text = f"✅ Calculation Done!\n\n{self.calculation_data}"
-        except:
-            self.result_label.text = "❌ Please enter valid numbers!"
+            self.result.delete("1.0", "end")
+            self.result.insert("1.0", f"✅ Calculation Completed Successfully!\n\n{self.calc_data}")
+            self.save_btn.configure(state="normal")
 
-    def save_pdf(self, instance):
-        if not self.calculation_data:
-            self.show_dialog("Warning", "Please calculate first!")
+        except ValueError:
+            messagebox.showerror("خطأ", "يرجى إدخال أرقام صحيحة في جميع الحقول")
+
+    def save_pdf(self):
+        if not self.calc_data:
             return
-        def confirm(*args):
-            self.generate_pdf()
-        self.show_dialog("Confirm Save", "Save the report as PDF with logo?", confirm)
 
-    def show_dialog(self, title, text, callback=None):
-        dialog = MDDialog(title=title, text=text, buttons=[
-            MDRaisedButton(text="Cancel"),
-            MDRaisedButton(text="Yes", on_release=lambda x: (dialog.dismiss(), callback() if callback else None))
-        ])
-        dialog.open()
+        if not messagebox.askyesno("تأكيد", "هل تريد حفظ التقرير كملف PDF؟"):
+            return
 
-    def generate_pdf(self):
         try:
             filename = "Solar_Report_Engineer_Ahmed.pdf"
             doc = SimpleDocTemplate(filename, pagesize=A4)
+
             logo_path = "logo_temp.png"
-            self.create_logo_image(logo_path)
+            self.make_logo(logo_path)
+
             styles = getSampleStyleSheet()
-            title_style = ParagraphStyle('Title', fontSize=24, textColor=colors.red, alignment=1)
-            normal = ParagraphStyle('Normal', fontSize=14, leading=18)
+            title_style = ParagraphStyle('Title', fontSize=26, textColor=colors.red, alignment=1)
+            normal = ParagraphStyle('Normal', fontSize=14, leading=20)
+
             story = []
             story.append(RLImage(logo_path, width=140*mm, height=45*mm))
-            story.append(Spacer(1, 20*mm))
+            story.append(Spacer(1, 25*mm))
             story.append(Paragraph("Solar Power System Design Report", title_style))
             story.append(Paragraph("Engineer Ahmed", ParagraphStyle('Eng', fontSize=18, alignment=1)))
-            story.append(Spacer(1, 20*mm))
-            for line in self.calculation_data.split('\n'):
+            story.append(Spacer(1, 25*mm))
+
+            for line in self.calc_data.split('\n'):
                 if line.strip():
                     story.append(Paragraph(line, normal))
-            doc.build(story)
-            if os.path.exists(logo_path):
-                os.remove(logo_path)
-            self.show_dialog("Success", f"PDF saved!\n{filename}")
-        except Exception as e:
-            self.show_dialog("Error", f"Failed to save PDF:\n{str(e)}")
 
-    def create_logo_image(self, path):
+            doc.build(story)
+            os.remove(logo_path)
+
+            messagebox.showinfo("نجح", f"تم حفظ التقرير بنجاح!\nالملف: {filename}")
+
+        except Exception as e:
+            messagebox.showerror("خطأ", f"فشل في حفظ الملف:\n{str(e)}")
+
+    def make_logo(self, path):
         img = Image.new("RGB", (900, 250), "#1a1a1a")
         draw = ImageDraw.Draw(img)
         draw.rectangle([(0,0),(900,250)], outline="#ff3333", width=15)
         try:
-            font_big = ImageFont.truetype("arial.ttf", 80)
-            font_small = ImageFont.truetype("arial.ttf", 45)
+            big = ImageFont.truetype("arial.ttf", 85)
+            small = ImageFont.truetype("arial.ttf", 48)
         except:
-            font_big = ImageFont.load_default()
-            font_small = ImageFont.load_default()
-        draw.text((70, 50), "⚡ SOLAR", fill="#ff3333", font=font_big)
-        draw.text((460, 65), "POWER", fill="#ffffff", font=font_big)
-        draw.text((280, 160), "Engineer Ahmed", fill="#ffdddd", font=font_small)
+            big = ImageFont.load_default()
+            small = ImageFont.load_default()
+        draw.text((70, 50), "⚡ SOLAR", fill="#ff3333", font=big)
+        draw.text((460, 70), "POWER", fill="#ffffff", font=big)
+        draw.text((280, 155), "Engineer Ahmed", fill="#ffdddd", font=small)
         img.save(path, "PNG")
 
+    def run(self):
+        self.root.mainloop()
 
-class SolarApp(MDApp):
-    def build(self):
-        self.theme_cls.theme_style = "Dark"
-        self.theme_cls.primary_palette = "Red"
-        return SolarCalculatorScreen()
 
-if __name__ == '__main__':
-    SolarApp().run()
+if __name__ == "__main__":
+    app = SolarApp()
+    app.run()
