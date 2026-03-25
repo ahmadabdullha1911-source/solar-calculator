@@ -1,15 +1,15 @@
 [app]
 
-title = Solar Power Calculator
+title = Solar Calculator
 package.name = solarcalculator
 package.domain = org.engineerahmed
 
 source.dir = .
-source.include_exts = py,png,jpg,kv,atlas
+source.include_exts = py
 
 version = 1.0
 
-requirements = python3,kivy==2.3.1,kivymd,reportlab,pillow,docutils,pygments
+requirements = python3,kivy==2.3.1,kivymd,reportlab,pillow
 
 orientation = portrait
 fullscreen = 0
